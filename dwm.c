@@ -211,6 +211,7 @@ static void tagmon(const Arg *arg);
 static void tile(Monitor *);
 static void togglebar(const Arg *arg);
 static void togglefloating(const Arg *arg);
+static void togglefullscreen(const Arg *arg);
 static void toggletag(const Arg *arg);
 static void toggleview(const Arg *arg);
 static void unfocus(Client *c, int setfocus);
@@ -1670,31 +1671,61 @@ tagmon(const Arg *arg)
 	sendmon(selmon->sel, dirtomon(arg->i));
 }
 
+
 void
 tile(Monitor *m)
 {
-	unsigned int i, n, h, mw, my, ty;
-	Client *c;
+    unsigned int i, n, h, mw, my, ty;
+    Client *c;
 
-	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
-	if (n == 0)
-		return;
+    for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
+    if (n == 0)
+        return;
 
-	if (n > m->nmaster)
-		mw = m->nmaster ? m->ww * m->mfact : 0;
-	else
-		mw = m->ww;
-	for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++)
-		if (i < m->nmaster) {
-			h = (m->wh - my) / (MIN(n, m->nmaster) - i);
-			resize(c, m->wx, m->wy + my, mw - (2*c->bw), h - (2*c->bw), 0);
-			my += HEIGHT(c);
-		} else {
-			h = (m->wh - ty) / (n - i);
-			resize(c, m->wx + mw, m->wy + ty, m->ww - mw - (2*c->bw), h - (2*c->bw), 0);
-			ty += HEIGHT(c);
-		}
+    if (n > m->nmaster)
+        mw = m->nmaster ? m->ww * m->mfact : 0;
+    else
+        mw = m->ww;
+    for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++)
+        if (i < m->nmaster) {
+            h = (m->wh - my) / (MIN(n, m->nmaster) - i);
+            resize(c, m->wx, m->wy + my, mw - (2*c->bw), h - (2*c->bw), 0);
+            my += HEIGHT(c);
+        } else {
+            h = (m->wh - ty) / (n - i);
+            resize(c, m->wx + mw, m->wy + ty, m->ww - mw - (2*c->bw), h - (2*c->bw), 0);
+            ty += HEIGHT(c);
+        }
 }
+
+
+/* void */
+/* tile(Monitor *m) */
+/* { */
+	/* unsigned int i, n, h, r, g = 0, mw, my, ty; */
+	/* Client *c; */
+
+	/* for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++); */
+	/* if (n == 0) */
+		/* return; */
+
+	/* if (n > m->nmaster) */
+        /* mw = m->nmaster ? (m->ww - (g = gappx)) * m->mfact : 0; */
+	/* else */
+		/* mw = m->ww; */
+	/* for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++) */
+		/* if (i < m->nmaster) { */
+            /* r = MIN(n, m->nmaster) - i; */
+			/* h = (m->wh - my - gappx * (r - 1)) / r; */
+			/* resize(c, m->wx, m->wy + my, mw - (2*c->bw), h - (2*c->bw), 0); */
+			/* my += HEIGHT(c) + gappx; */
+		/* } else { */
+			/* r = n - i; */
+			/* h = (m->wh - ty - gappx * (r - 1)) / r; */
+			/* resize(c, m->wx + mw + g, m->wy + ty, m->ww - mw - g - (2*c->bw), h - (2*c->bw), False); */
+			/* ty += HEIGHT(c) + gappx; */
+		/* } */
+/* } */
 
 void
 togglebar(const Arg *arg)
@@ -1717,6 +1748,14 @@ togglefloating(const Arg *arg)
 		resize(selmon->sel, selmon->sel->x, selmon->sel->y,
 			selmon->sel->w, selmon->sel->h, 0);
 	arrange(selmon);
+}
+
+void
+togglefullscreen(const Arg *arg) {
+    if (!selmon->sel)
+        return;
+
+    setfullscreen(selmon->sel, !selmon->sel->isfullscreen);
 }
 
 void
